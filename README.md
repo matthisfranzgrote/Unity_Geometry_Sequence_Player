@@ -9,6 +9,14 @@
 
 ### [Quickstart](https://buildingvolumes.github.io/Unity_Geometry_Sequence_Player/docs/quickstart/quick-start/) | [Documentation](https://buildingvolumes.github.io/Unity_Geometry_Sequence_Player/) | [Unity Asset Store](https://u3d.as/3suF) | [Unity Forums Thread](https://discussions.unity.com/t/released-geometry-sequence-player/921802) | [License](#license) 
 
+## Attribution:
+This repository is a fork of the [Geometry Sequence Player](https://github.com/BuildingVolumes/Unity_Geometry_Sequence_Player) by Christopher Remde.
+
+The original work © 2025 by Christopher Remde is licensed under Creative Commons Attribution-NonCommercial 4.0 International. 
+To view a copy of this license, visit https://creativecommons.org/licenses/by-nc/4.0/
+
+This fork primarily adds a python cli wrapper for the converter.
+
 ## Overview:
 
 This package for the Unity game engine allows you to playback large and complex geometric sequences. In a geometry sequence, each frame consists out of an individual mesh or pointcloud, which is then shown at short intervalls to create the illusion of a animation, kind of like a 3D flipbook. The package was orginally developed to allow playback of Volumetric Video captures, but can also be used to play any animated 3D-sequences, that are unsuitable for bone or blendshape workflows, like for example...
