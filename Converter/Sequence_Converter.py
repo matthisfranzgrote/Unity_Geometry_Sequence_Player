@@ -86,8 +86,13 @@ class SequenceConverter:
             for model in self.convertSettings.modelPaths:
                 self.calculate_min_max_bounds(model)
         else:
-            get_bounds_pool = ThreadPool(processes = self.convertSettings.maxThreads)
-            get_bounds_pool.map_async(self.calculate_min_max_bounds, self.convertSettings.modelPaths)
+            # run preprocess in main loop for way better performance than when using one thread
+            if self.convertSettings.maxThreads == 1:
+                for model in self.convertSettings.modelPaths:
+                    self.calculate_min_max_bounds(model)
+            else:
+                get_bounds_pool = ThreadPool(processes = self.convertSettings.maxThreads)
+                get_bounds_pool.map_async(self.calculate_min_max_bounds, self.convertSettings.modelPaths)
 
         return True
 
@@ -147,8 +152,15 @@ class SequenceConverter:
         else:
             # Process the first model to establish sequence attributes (Pointcloud or Mesh, has UVs? Normals?)
             self.convert_model(self.convertSettings.modelPaths[0])
-            self.modelPool = ThreadPool(processes = self.convertSettings.maxThreads)
-            self.modelPool.map_async(self.convert_model, self.convertSettings.modelPaths)
+
+            # if only one "thread", just run in main thread instead to avoid overhead
+            if self.convertSettings.maxThreads == 1:
+                for model in self.convertSettings.modelPaths:
+                    self.convert_model(model)
+                self.modelPool = None
+            else:
+                self.modelPool = ThreadPool(processes = self.convertSettings.maxThreads)
+                self.modelPool.map_async(self.convert_model, self.convertSettings.modelPaths)
 
     def calculate_min_max_bounds(self, file):
 
@@ -525,13 +537,18 @@ class SequenceConverter:
         else:
             threads = self.convertSettings.maxThreads
 
-        self.convertSettings.texturePool = ThreadPool(processes= threads)
-
         #Read the first image to get the dimensions
         self.convert_image(self.convertSettings.imagePaths[0])
         self.convertSettings.imagePaths.pop(0)
 
-        self.convertSettings.texturePool.map_async(self.convert_image, self.convertSettings.imagePaths)
+        # if only one "thread", just run in main thread instead to avoid overhead
+        if self.convertSettings.maxThreads == 1:
+            for image in self.convertSettings.imagePaths:
+                self.convert_image(image)
+            self.texturePool = None
+        else:
+            self.texturePool = ThreadPool(processes = threads)
+            self.texturePool.map_async(self.convert_image, self.convertSettings.imagePaths)
 
     def convert_image(self, file):
 
