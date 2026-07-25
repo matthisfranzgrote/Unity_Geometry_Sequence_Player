@@ -1,7 +1,18 @@
 import os
 import sys
 import subprocess
-import pymeshlab as ml
+
+# some plugins and libraries seem not to be linked correctly under windows pip installation of pymeshlab
+# we don't need those here, so silence the warnings
+devnull = open(os.devnull, "w")
+old_out, old_err = sys.stdout, sys.stderr
+sys.stdout, sys.stderr = devnull, devnull
+try:
+    import pymeshlab as ml
+finally:
+    sys.stdout, sys.stderr = old_out, old_err
+    devnull.close()
+
 import numpy as np
 import math
 from threading import Lock
@@ -569,16 +580,38 @@ class SequenceConverter:
 
         if(self.convertSettings.convertToDDS):
             outputfileDDS = os.path.join(self.convertSettings.outputPath, file_name + ".dds")
-            cmd = self.convertSettings.resourcePath + "texconv " + "\"" + inputfile + "\"" + " -o " + "\"" + self.convertSettings.outputPath + "\"" +" -m 1 -f DXT1 -y -nologo"
+
+            cmd = [
+                self.convertSettings.resourcePath + "texconv.exe",
+                "-m", "1",
+                "-f", "DXT1",
+                "-y",
+                "-nologo",
+                "-o", self.convertSettings.outputPath,
+                "--",
+                inputfile
+            ]
+
             if(self.convertSettings.convertToSRGB):
-                cmd += " -srgbo"
+                cmd.append(" -srgbo")
+            
             if(subprocess.run(cmd, stdout=open(os.devnull, 'wb')).returncode != 0):
                 self.processFinishedCB(True, "Error converting DDS texture: " + inputfile)
                 return
 
         if(self.convertSettings.convertToASTC):
             outputfileASCT = os.path.join(self.convertSettings.outputPath, file_name + ".astc")
-            cmd = self.convertSettings.resourcePath + "astcenc -cl " + "\"" + inputfile + "\"" + " " + "\"" + outputfileASCT + "\"" + " 6x6 -medium -silent"
+
+            cmd = [
+                self.convertSettings.resourcePath + "astcenc.exe",
+                "-cl",
+                inputfile,
+                outputfileASCT,
+                "6x6",
+                "-medium",
+                "-silent",
+            ]
+
             if(subprocess.run(cmd, stdout=open(os.devnull, 'wb')).returncode != 0):
                 self.processFinishedCB(True, "Error converting ASTC texture: " + inputfile)
                 return
